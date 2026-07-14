@@ -1,0 +1,147 @@
+/*
+ * Page de connexion — GED ESCEP-Niger
+ * Supporte fond couleur ou image floutée
+ */
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 16px;
+  position: relative;
+}
+
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 0;
+}
+
+/* Quand pas d'image de fond, pas d'overlay visible */
+.login-page:not([style*="backgroundImage"]) .login-overlay {
+  display: none;
+}
+
+.login-box {
+  position: relative;
+  z-index: 1;
+  background-color: #FFFFFF;
+  padding: 40px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 420px;
+  border-top: 5px solid #FDD835;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 20px auto;
+  max-width: 160px;
+  max-height: 80px;
+  object-fit: contain;
+}
+
+.login-titre {
+  text-align: center;
+  color: #1565C0;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.login-slogan {
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.champ {
+  margin-bottom: 16px;
+}
+
+.champ label {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.champ input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #CCC;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border 0.15s;
+}
+
+.champ input:focus {
+  outline: none;
+  border-color: #1565C0;
+}
+
+.btn-connexion {
+  width: 100%;
+  padding: 12px;
+  background-color: #1565C0;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.15s;
+}
+
+.btn-connexion:hover:not(:disabled) { background-color: #0D47A1; }
+.btn-connexion:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-lien {
+  background: none;
+  border: none;
+  color: #1565C0;
+  font-size: 13px;
+  cursor: pointer;
+  display: block;
+  margin: 8px auto 0;
+  text-decoration: underline;
+}
+
+.erreur {
+  color: #D32F2F;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.alerte-info {
+  background: #E3F2FD;
+  color: #1565C0;
+  border-left: 4px solid #1565C0;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.login-pied {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-box { padding: 24px 18px; }
+}

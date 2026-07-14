@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+
+  # Base de données PostgreSQL 15
+  db:
+    image: postgres:15
+    container_name: ged_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ged_escep
+      POSTGRES_USER: ged_user
+      POSTGRES_PASSWORD: motdepasse
+    ports:
+      - "5432:5432"
+    volumes:
+      - ged_data:/var/lib/postgresql/data
+
+volumes:
+  ged_data:

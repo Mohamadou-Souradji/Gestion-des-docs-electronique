@@ -1,0 +1,18 @@
+/* Style global de l'application GED ESCEP-Niger */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: #333333;
+  background-color: #f0f2f5;
+}
+
+#app {
+  min-height: 100vh;
+}
