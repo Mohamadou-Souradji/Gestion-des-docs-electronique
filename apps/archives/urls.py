@@ -1,8 +1,9 @@
 from django.urls import path
-from . import views
+from apps.archives import views
 
 urlpatterns = [
-    path('archives/',              views.liste_archives,    name='archives'),
-    path('archives/lot/',          views.versement_par_lot, name='versement_lot'),
-    path('archives/fonds/',        views.fonds_disponibles, name='fonds'),
+    path('archives/fonds/',        views.liste_fonds,    name='fonds-list'),
+    path('archives/fonds/<int:pk>/', views.detail_fonds, name='fonds-detail'),
+    path('archives/',              views.liste_archives,  name='archives-list'),
+    path('archives/<int:pk>/',     views.detail_archive,  name='archives-detail'),
 ]

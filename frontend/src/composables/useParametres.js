@@ -1,89 +1,201 @@
 /**
- * Charge et met en cache les paramètres publics de l'application.
- * Applique les couleurs dynamiquement via injection CSS.
- * Recharge automatiquement tous les 60 secondes pour refléter les changements de l'admin.
+ * useParametres.js — Paramètres visuels + typographie par organisation.
+ * Utilise le tenant_code sauvegardé en localStorage.
  */
-
-import { ref } from 'vue'
 import axios from 'axios'
 
-const cache = ref(null)
-let lastLoadTime = 0
-const POLLING_INTERVAL = 60000 // 60 secondes
+let cache = null
 
-export async function useParametres(forceReload = false) {
-  const now = Date.now()
-  
-  // Si forceReload=true ou si le cache a plus de 60 secondes, recharger
-  if ((cache.value && !forceReload && (now - lastLoadTime < POLLING_INTERVAL))) {
-    return cache.value
-  }
-
+function getTenantCode() {
   try {
-    const rep   = await axios.get('http://localhost:8000/api/parametres/publics/')
-    cache.value = rep.data
-    lastLoadTime = now
-    appliquerCouleurs(rep.data)
-  } catch(e) {
-    cache.value = {
-      nom_application:    'GED ESCEP-Niger',
-      slogan:             'Gestion Électronique des Documents',
-      texte_pied_page:    '© ESCEP-Niger',
-      couleur_principale: '#1565C0',
-      couleur_accent:     '#FDD835',
-      couleur_danger:     '#D32F2F',
-      logo_url:           null,
-      image_fond_url:     null,
-      timeout_inactivite: 30,
+    const token = localStorage.getItem('access')
+    if (token) {
+      const p = JSON.parse(atob(token.split('.')[1]))
+      if (p.tenant_code) return p.tenant_code
     }
-  }
-  return cache.value
+  } catch (e) {}
+  return localStorage.getItem('tenant_code') || ''
 }
 
+export async function useParametres(force = false) {
+  if (cache && !force) return cache
 
-export function appliquerCouleurs(params) {
-  const c = params.couleur_principale || '#1565C0'
-  const a = params.couleur_accent     || '#FDD835'
-  const d = params.couleur_danger     || '#D32F2F'
+  const code = getTenantCode()
 
-  // Variables CSS
+  try {
+    const url = code
+      ? `http://localhost:8000/api/parametres/publics/?tenant=${code}`
+      : 'http://localhost:8000/api/parametres/publics/'
+
+    const rep = await axios.get(url)
+
+    if (rep.data) {
+      cache = rep.data
+      if (cache.code_tenant) localStorage.setItem('tenant_code', cache.code_tenant)
+      appliquerStyles(cache)
+      appliquerFavicon(cache)
+      return cache
+    }
+  } catch (error) {
+    console.error('Erreur chargement parametres:', error)
+  }
+
+  cache = {
+    nom_application:          'GED',
+    slogan:                   'Gestion Electronique des Documents',
+    texte_pied_page:          '© GED SaaS',
+    couleur_principale:       '#1565C0',
+    couleur_accent:           '#FDD835',
+    couleur_danger:           '#D32F2F',
+    logo_url:                 null,
+    favicon_url:              null,
+    image_fond_url:           null,
+    flou_image_fond:          5,
+    timeout_inactivite:       30,
+    double_auth_active:       false,
+    code_tenant:              code || '',
+    police:                   "'Segoe UI', sans-serif",
+    taille_texte_base:        '14px',
+    couleur_texte:            '#222222',
+    couleur_texte_secondaire: '#666666',
+    graisse_titres:           '700',
+    rayon_bord:               '6px',
+  }
+
+  appliquerStyles(cache)
+  return cache
+}
+
+export function appliquerFavicon(p) {
+  // Favicon dynamique selon l'organisation
+  const iconUrl = p.favicon_url || p.logo_url
+  if (iconUrl) {
+    let link = document.querySelector("link[rel~='icon']")
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.head.appendChild(link)
+    }
+    link.href = iconUrl
+  }
+
+  // Titre de l'onglet
+  if (p.nom_application) document.title = p.nom_application
+}
+
+export function appliquerStyles(p) {
+  appliquerCouleurs(p)
+  appliquerTypographie(p)
+}
+
+export function appliquerCouleurs(p) {
+  const c = p.couleur_principale || '#1565C0'
+  const a = p.couleur_accent     || '#FDD835'
+  const d = p.couleur_danger     || '#D32F2F'
+
   const root = document.documentElement
-  root.style.setProperty('--c-principal', c)
-  root.style.setProperty('--c-accent',    a)
-  root.style.setProperty('--c-danger',    d)
+  root.style.setProperty('--couleur-principale', c)
+  root.style.setProperty('--couleur-accent', a)
+  root.style.setProperty('--couleur-danger', d)
 
-  // Injection CSS dynamique couvrant toutes les classes
   let style = document.getElementById('ged-couleurs-dynamiques')
   if (!style) {
-    style    = document.createElement('style')
+    style = document.createElement('style')
     style.id = 'ged-couleurs-dynamiques'
     document.head.appendChild(style)
   }
+
   style.textContent = `
-    .sidebar                             { background-color: ${c} !important; }
-    .pied-page                           { background-color: ${c} !important; }
-    .topbar-titre                        { color: ${c} !important; }
-    .login-titre                         { color: ${c} !important; }
-    .login-box                           { border-top-color: ${a} !important; }
-    .carte-titre                         { color: ${c} !important; border-bottom-color: ${a} !important; }
-    .stat-valeur                         { color: ${c} !important; }
-    .tableau th                          { background-color: ${c} !important; }
-    .nav-item.actif                      { border-left-color: ${a} !important; }
-    .nav-sous-item.actif                 { color: ${a} !important; }
-    .sidebar-profil-role                 { color: ${a} !important; }
-    .entete-titre                        { color: ${a} !important; }
-    .btn-primary, .btn-connexion         { background-color: ${c} !important; }
-    .btn-primary:hover:not(:disabled),
-    .btn-connexion:hover:not(:disabled)  { background-color: ${c}cc !important; }
-    .btn-outline                         { color: ${c} !important; border-color: ${c} !important; }
-    .btn-outline:hover                   { background-color: ${c}11 !important; }
-    .btn-danger, .btn-rejeter            { background-color: ${d} !important; }
-    .badge-saisi                         { color: ${c} !important; }
-    .onglet.actif                        { color: ${c} !important; border-bottom-color: ${c} !important; }
-    .champ input:focus,
-    .champ select:focus,
-    .champ textarea:focus                { border-color: ${c} !important; }
-    .modal-titre                         { color: ${c} !important; }
-    .carte-titre                         { color: ${c} !important; }
+    .sidebar {
+      background: linear-gradient(180deg,
+        var(--couleur-principale,${c}) 0%,
+        color-mix(in srgb, var(--couleur-principale,${c}) 95%, black) 100%
+      ) !important;
+    }
+    .nav-item { color: #fff !important; }
+    .nav-item:hover { background: rgba(255,255,255,0.15) !important; }
+    .nav-item.actif { border-left-color: var(--couleur-accent,${a}) !important; background: rgba(255,255,255,0.1) !important; }
+    .nav-sous-item.actif { color: var(--couleur-accent,${a}) !important; font-weight:600 !important; }
+    .sidebar-profil-role { color: var(--couleur-accent,${a}) !important; }
+    .topbar-titre { color: var(--couleur-principale,${c}) !important; }
+    .login-titre { color: var(--couleur-principale,${c}) !important; }
+    .login-box { border-top-color: var(--couleur-accent,${a}) !important; }
+    .carte-titre { color: var(--couleur-principale,${c}) !important; border-bottom-color: var(--couleur-accent,${a}) !important; }
+    .stat-valeur { color: var(--couleur-principale,${c}) !important; }
+    .tableau th { background: var(--couleur-principale,${c}) !important; }
+    .btn-primary, .btn-connexion { background: var(--couleur-principale,${c}) !important; color:#fff !important; }
+    .btn-primary:hover:not(:disabled), .btn-connexion:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--couleur-principale,${c}) 80%, black) !important;
+    }
+    .btn-outline { color: var(--couleur-principale,${c}) !important; border-color: var(--couleur-principale,${c}) !important; }
+    .btn-danger { background: var(--couleur-danger,${d}) !important; }
+    .modal-titre { color: var(--couleur-principale,${c}) !important; }
+    .champ input:focus, .champ select:focus, .champ textarea:focus {
+      border-color: var(--couleur-principale,${c}) !important;
+    }
+    .onglet.actif { color: var(--couleur-principale,${c}) !important; border-bottom-color: var(--couleur-principale,${c}) !important; }
+    .pied-page { background: var(--couleur-principale,${c}) !important; }
+    .checklist input[type="checkbox"] { accent-color: var(--couleur-principale,${c}) !important; }
   `
 }
+
+export function appliquerTypographie(p) {
+  const police   = p.police                   || "'Segoe UI', sans-serif"
+  const taille   = p.taille_texte_base        || '14px'
+  const txtPrinc = p.couleur_texte            || '#222222'
+  const txtSec   = p.couleur_texte_secondaire || '#666666'
+  const graisse  = p.graisse_titres           || '700'
+  const rayon    = p.rayon_bord               || '6px'
+
+  const root = document.documentElement
+  root.style.setProperty('--police',            police)
+  root.style.setProperty('--taille-texte',      taille)
+  root.style.setProperty('--couleur-texte',     txtPrinc)
+  root.style.setProperty('--couleur-texte-sec', txtSec)
+  root.style.setProperty('--graisse-titres',    graisse)
+  root.style.setProperty('--rayon-bord',        rayon)
+
+  let style = document.getElementById('ged-typo-dynamique')
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'ged-typo-dynamique'
+    document.head.appendChild(style)
+  }
+
+  style.textContent = `
+    body, .app-layout, .carte, .modal, .sidebar-nav, .champ, .tableau {
+      font-family: var(--police) !important;
+      font-size: var(--taille-texte);
+    }
+    p, span, label, td, li, input, select, textarea, button {
+      font-family: var(--police) !important;
+    }
+    .carte-titre, .modal-titre, .topbar-titre, h1, h2, h3, h4 {
+      font-weight: var(--graisse-titres) !important;
+    }
+    .champ label, .meta-label, .stat-label,
+    .sidebar-profil-role, .nav-section-titre, .courrier-card-exp {
+      color: var(--couleur-texte-sec) !important;
+    }
+    .btn, .btn-primary, .btn-connexion, .btn-success,
+    .btn-danger, .btn-outline, .btn-ghost {
+      border-radius: var(--rayon-bord) !important;
+    }
+    .carte, .stat-card, .courrier-card, .kpi-card {
+      border-radius: var(--rayon-bord) !important;
+    }
+    .modal { border-radius: calc(var(--rayon-bord) * 1.5) !important; }
+    input, select, textarea { border-radius: var(--rayon-bord) !important; }
+    .app-layout .sidebar .nav-item,
+    .app-layout .sidebar .nav-sous-item,
+    .app-layout .sidebar . {
+      color: var(--couleur-texte, #fff) !important;
+    }
+    .app-layout  {
+      color: var(--couleur-texte, #fff) !important;
+    } 
+  `
+}
+
+export function getCachedParametres() { return cache }
+export function clearParametresCache() { cache = null }

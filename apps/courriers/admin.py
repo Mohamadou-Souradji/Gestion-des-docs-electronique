@@ -9,3 +9,5 @@ class CourrierAdmin(admin.ModelAdmin):
     search_fields = ('numero_officiel', 'objet', 'expediteur')
     ordering      = ('-date_saisie',)
     readonly_fields = ('numero_officiel', 'date_saisie')
+
+

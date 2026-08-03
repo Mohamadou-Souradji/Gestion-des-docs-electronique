@@ -29,7 +29,11 @@
 .sidebar {
   width: 240px;
   min-height: 100vh;
-  background: linear-gradient(180deg, #1565C0 0%, #1b5cb8 100%);
+  background: linear-gradient(
+    180deg,
+    var(--couleur-principale, #1565C0) 0%,
+    color-mix(in srgb, var(--couleur-principale, #1565C0) 95%, black) 100%
+  );
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -39,7 +43,6 @@
   box-shadow: 2px 0 8px rgba(0,0,0,0.12);
   transition: all 0.3s ease;
 }
-
 .sidebar-logo {
   padding: 16px;
   border-bottom: 1px solid rgba(255,255,255,0.15);
@@ -351,9 +354,26 @@
 
 .grille-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+}
+
+/* Grille responsive pour modals - 2 colonnes sur écrans moyens, 1 sur petits */
+.modal-contenu .grille-form {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 900px) {
+  .modal-contenu .grille-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  .grille-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .champ {
@@ -643,7 +663,7 @@
   background-color: #FFFFFF;
   border-radius: 8px;
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.16);
-  max-width: 700px;
+  max-width: 850px;
   width: 90%;
   max-height: 85vh;
   overflow-y: auto;

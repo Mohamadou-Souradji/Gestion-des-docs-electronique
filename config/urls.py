@@ -9,6 +9,7 @@ from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
+      path('api/', include('apps.organisations.urls')),
     path('admin/', admin.site.urls),
 
     # Users : authentification, paramètres, directions, comptes

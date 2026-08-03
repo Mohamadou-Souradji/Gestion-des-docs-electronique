@@ -34,12 +34,15 @@ for d in directions_data:
 
 # Créer les utilisateurs
 utilisateurs = [
-    {'identifiant': 'dg_escep',     'nom': 'Mahamadou', 'prenom': 'Issoufou', 'profil': 'DG',    'direction': dirs['DG'],      'modules_actifs': []},
-    {'identifiant': 'assistant_dg', 'nom': 'Moussa',    'prenom': 'Adamou',   'profil': 'ASSIST','direction': dirs['DG'],      'modules_actifs': []},
-    {'identifiant': 'bureau_ordre', 'nom': 'Harouna',   'prenom': 'Saidou',   'profil': 'BO',    'direction': dirs['DG'],      'modules_actifs': []},
-    {'identifiant': 'dest_di',      'nom': 'Issa',      'prenom': 'Boubacar', 'profil': 'DEST',  'direction': dirs['DEP/DI'],  'modules_actifs': ['recherche']},
-    {'identifiant': 'dest_sc',      'nom': 'Balkissa',  'prenom': 'Fatouma',  'profil': 'DEST',  'direction': dirs['DEP/SC'],  'modules_actifs': []},
-    {'identifiant': 'archiviste',   'nom': 'Zalika',    'prenom': 'Ibrahim',  'profil': 'ARC',   'direction': dirs['ARC'],     'modules_actifs': []},
+    # Les modules ne sont jamais liés au profil : ils sont accordés
+    # ici uniquement pour permettre de tester l'application immédiatement.
+    # L'Administrateur peut les modifier à tout moment.
+    {'identifiant': 'dg_escep',     'nom': 'Mahamadou', 'prenom': 'Issoufou', 'profil': 'DG',    'direction': dirs['DG'],      'modules_actifs': ['imputation', 'statistiques', 'audit', 'delegations', 'recherche']},
+    {'identifiant': 'assistant_dg', 'nom': 'Moussa',    'prenom': 'Adamou',   'profil': 'ASSIST','direction': dirs['DG'],      'modules_actifs': ['verification']},
+    {'identifiant': 'bureau_ordre', 'nom': 'Harouna',   'prenom': 'Saidou',   'profil': 'BO',    'direction': dirs['DG'],      'modules_actifs': ['saisie']},
+    {'identifiant': 'dest_di',      'nom': 'Issa',      'prenom': 'Boubacar', 'profil': 'DEST',  'direction': dirs['DEP/DI'],  'modules_actifs': ['traitement', 'recherche']},
+    {'identifiant': 'dest_sc',      'nom': 'Balkissa',  'prenom': 'Fatouma',  'profil': 'DEST',  'direction': dirs['DEP/SC'],  'modules_actifs': ['traitement']},
+    {'identifiant': 'archiviste',   'nom': 'Zalika',    'prenom': 'Ibrahim',  'profil': 'ARC',   'direction': dirs['ARC'],     'modules_actifs': ['archivage', 'archives', 'recherche']},
     {'identifiant': 'admin_sys',    'nom': 'Système',   'prenom': 'Admin',    'profil': 'ADMIN', 'direction': None,            'modules_actifs': []},
 ]
 
@@ -49,7 +52,7 @@ for u in utilisateurs:
         continue
     Utilisateur.objects.create_user(
         identifiant       = u['identifiant'],
-        password          = 'Test@1234567',
+        password          = '1234',
         nom               = u['nom'],
         prenom            = u['prenom'],
         profil            = u['profil'],

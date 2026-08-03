@@ -1,56 +1,70 @@
-/**
- * Gestion des modules actifs de l'utilisateur connecté.
- * Chargé depuis /api/moi/ au démarrage de chaque page.
- * Se rafraîchit toutes les 60 secondes pour refléter
- * les changements faits par l'admin en temps réel.
- */
-
 import { ref } from 'vue'
-import axios from 'axios'
+import { usersApi } from '../services/api'
 
-let cache      = null
-let lastLoad   = 0
-const listeners = new Set()
+const modules      = ref([])
+const profil       = ref('')
+const nom          = ref('')
+const prenom       = ref('')
+const direction    = ref('')
+const workflow_type = ref('CLASSIQUE')  // ← AJOUTER
+let   loaded       = false
 
-function notifier() {
-  listeners.forEach(fn => fn())
-}
-
-export function subscribeModules(fn) {
-  listeners.add(fn)
-  return () => listeners.delete(fn)
+export async function useModules(force = false) {
+  if (loaded && !force) {
+    return {
+      modules:       modules.value,
+      profil:        profil.value,
+      nom:           nom.value,
+      prenom:        prenom.value,
+      direction:     direction.value,
+      workflow_type: workflow_type.value,  // ← CORRIGER (data n'existe pas)
+    }
+  }
+  try {
+    const rep          = await usersApi.monProfil()
+    modules.value      = rep.data.modules       || []
+    profil.value       = rep.data.profil        || ''
+    nom.value          = rep.data.nom           || ''
+    prenom.value       = rep.data.prenom        || ''
+    direction.value    = rep.data.direction     || ''
+    workflow_type.value = rep.data.workflow_type || 'CLASSIQUE'  // ← AJOUTER
+    loaded             = true
+    localStorage.setItem('ged_modules', JSON.stringify(modules.value))
+  } catch(e) {
+    const cached = localStorage.getItem('ged_modules')
+    if (cached) modules.value = JSON.parse(cached)
+    const token = localStorage.getItem('access')
+    if (token) {
+      try {
+        const p = JSON.parse(atob(token.split('.')[1]))
+        profil.value       = p.profil        || ''
+        nom.value          = p.nom           || ''
+        prenom.value       = p.prenom        || ''
+        workflow_type.value = p.workflow_type || 'CLASSIQUE'  // ← AJOUTER
+      } catch(e2) {}
+    }
+  }
+  return {
+    modules:       modules.value,
+    profil:        profil.value,
+    nom:           nom.value,
+    prenom:        prenom.value,
+    direction:     direction.value,
+    workflow_type: workflow_type.value,  // ← AJOUTER
+  }
 }
 
 export function clearModulesCache() {
-  cache    = null
-  lastLoad = 0
-  localStorage.removeItem('modules_cache')
-  notifier()
+  loaded = false
+  modules.value       = []
+  profil.value        = ''
+  nom.value           = ''
+  prenom.value        = ''
+  direction.value     = ''
+  workflow_type.value = 'CLASSIQUE'  // ← AJOUTER
+  localStorage.removeItem('ged_modules')
 }
 
-export async function useModules(force = false) {
-  const now = Date.now()
-  // Retourner le cache si il a moins de 60 secondes et pas de forçage
-  if (cache && !force && (now - lastLoad) < 60000) {
-    return cache
-  }
-
-  try {
-    const token = localStorage.getItem('access')
-    if (!token) return []
-
-    const rep = await axios.get('http://localhost:8000/api/moi/', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    cache    = rep.data.modules || []
-    lastLoad = now
-    localStorage.setItem('modules_cache', JSON.stringify(cache))
-    notifier()
-  } catch(e) {
-    // Utiliser le cache local si l'API échoue
-    const local = localStorage.getItem('modules_cache')
-    cache = local ? JSON.parse(local) : []
-  }
-
-  return cache
+export function hasModule(code) {
+  return modules.value.includes(code)
 }

@@ -28,3 +28,11 @@ class EstDestinataire(BasePermission):
     """Un destinataire peut voir et traiter ses courriers."""
     def has_permission(self, request, view):
         return request.user.profil == 'DEST'
+        
+class EstSGA(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.profil == 'SGA'
+
+class EstSG(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.profil == 'SG'

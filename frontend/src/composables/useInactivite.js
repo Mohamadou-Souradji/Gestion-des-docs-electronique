@@ -1,22 +1,15 @@
-/**
- * Gestion du timeout d'inactivité.
- * Déconnecte l'utilisateur après N minutes sans activité.
- */
-
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { useParametres } from './useParametres'
 
 export function useInactivite() {
-  const router  = useRouter()
+  const router = useRouter()
   let minuterie = null
-  let duree     = 30
+  let duree = 30
 
-  async function chargerDuree() {
-    try {
-      const rep = await axios.get('http://localhost:8000/api/parametres/publics/')
-      duree = rep.data.timeout_inactivite || 30
-    } catch(e) {}
+  async function init() {
+    const p = await useParametres()
+    duree = p.timeout_inactivite || 30
   }
 
   function reinitialiser() {
@@ -29,21 +22,17 @@ export function useInactivite() {
   }
 
   function demarrer() {
-    const evenements = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
-    evenements.forEach(e => window.addEventListener(e, reinitialiser))
+    const ev = ['mousemove','keydown','click','scroll','touchstart']
+    ev.forEach(e => window.addEventListener(e, reinitialiser))
     reinitialiser()
   }
 
   function arreter() {
     clearTimeout(minuterie)
-    const evenements = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart']
-    evenements.forEach(e => window.removeEventListener(e, reinitialiser))
+    const ev = ['mousemove','keydown','click','scroll','touchstart']
+    ev.forEach(e => window.removeEventListener(e, reinitialiser))
   }
 
-  onMounted(async () => {
-    await chargerDuree()
-    demarrer()
-  })
-
+  onMounted(async () => { await init(); demarrer() })
   onUnmounted(() => arreter())
 }

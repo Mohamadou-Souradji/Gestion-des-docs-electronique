@@ -1,72 +1,116 @@
-# GED ESCEP-Niger — Version finale complète
+# GED ESCEP-Niger — Architecture modulaire v2
 
-## Lancement rapide
+## Nouveauté majeure : refonte frontend complète
+
+Le frontend est désormais structuré en petits fichiers spécialisés au lieu
+de vues monolithiques de 600+ lignes. Chaque module métier est un
+composant indépendant, réutilisé par une seule vue d'espace de travail.
+
+### Principe clé : les modules ne sont jamais liés à un profil
+
+Un utilisateur nouvellement créé (DG, Assistant DG, Bureau d'Ordre,
+Destinataire ou Archiviste) **n'a aucun module actif par défaut**.
+L'Administrateur choisit librement, pour chaque compte, quels modules
+il peut utiliser :
+
+- `saisie` — Saisie de courrier
+- `verification` — Vérification de courrier
+- `imputation` — Imputation de courrier
+- `traitement` — Traitement de courrier
+- `archivage` — Archivage courant
+- `archives` — Archives historiques (versement/consultation)
+- `recherche` — Recherche documentaire
+- `statistiques` — Tableaux de bord
+- `delegations` — Gestion des délégations
+- `audit` — Journal d'audit
+
+Un module activé apparaît immédiatement dans le menu de l'utilisateur ;
+désactivé, il disparaît. Rien n'est câblé en dur sur le profil.
+
+---
+
+## Structure du frontend
+
+```
+frontend/src/
+├── services/
+│   └── api.js                 # Instance axios unique + tous les endpoints
+├── composables/
+│   ├── useModules.js           # Modules actifs de l'utilisateur connecté
+│   ├── useParametres.js        # Paramètres visuels de l'app (couleurs, logo...)
+│   └── useInactivite.js        # Déconnexion automatique
+├── layout/
+│   ├── SidebarNav.vue          # Menu latéral dynamique selon les modules
+│   ├── TopBar.vue              # Barre du haut
+│   └── PiedPage.vue
+├── modules/
+│   ├── courriers/
+│   │   ├── SaisieCourrier.vue
+│   │   ├── ListeCourriers.vue
+│   │   ├── CarteCourrierDetail.vue
+│   │   ├── VerificationCourrier.vue
+│   │   ├── ImputationCourrier.vue
+│   │   └── TraitementCourrier.vue
+│   ├── archives/
+│   │   ├── ArchivageCourant.vue
+│   │   ├── VersementArchive.vue
+│   │   └── FondsArchives.vue
+│   ├── recherche/RechercheDocumentaire.vue
+│   ├── statistiques/
+│   │   ├── PanneauStatistiques.vue
+│   │   ├── IndicateursOperationnels.vue
+│   │   └── IndicateursStrategiques.vue
+│   ├── delegations/GestionDelegations.vue
+│   ├── audit/JournalAudit.vue
+│   └── notifications/ListeNotifications.vue
+├── admin/
+│   ├── modulesDisponibles.js    # Catalogue des modules (source unique)
+│   ├── SelecteurModules.vue     # Sélecteur réutilisable de modules
+│   ├── GestionComptes.vue
+│   ├── NouveauCompte.vue
+│   ├── ModifierCompteModal.vue
+│   ├── GestionDirections.vue
+│   ├── ParametresApp.vue
+│   ├── ParametresSecurite.vue
+│   └── SupervisionTechnique.vue
+├── views/
+│   ├── LoginView.vue            # Connexion + 2FA
+│   ├── EspaceView.vue           # Espace de travail unique (tous profils métier)
+│   └── AdminView.vue            # Espace administrateur (orchestrateur léger)
+└── router/index.js              # 3 routes seulement
+```
+
+Chaque fichier fait entre 50 et 200 lignes. Aucune vue ne dépasse 250 lignes.
+
+---
+
+## Lancement
 
 ```bash
-# 1. Base de données
 docker-compose up -d
 
-# 2. Backend
 python -m venv venv
-venv\Scripts\activate          # Windows
-source venv/bin/activate       # Linux/Mac
-
+venv\Scripts\activate
 pip install -r requirements.txt
 
-python manage.py makemigrations users
-python manage.py makemigrations courriers
-python manage.py makemigrations archives
-python manage.py makemigrations dashboard
+python manage.py makemigrations users courriers archives dashboard
 python manage.py migrate
-
 python creer_utilisateurs.py
 python manage.py runserver
+```
 
-# 3. Frontend (second terminal)
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Ouvrir : http://localhost:5173
+## Icônes
+
+Toutes les icônes utilisent Font Awesome (`@fortawesome/fontawesome-free`),
+importé globalement dans `main.js`. Aucun SVG inline, aucun emoji.
 
 ## Comptes de test (mot de passe : Test@1234567)
 
-| Identifiant   | Profil          |
-|---------------|-----------------|
-| dg_escep      | Directeur Général |
-| assistant_dg  | Assistant DG    |
-| bureau_ordre  | Bureau d'Ordre  |
-| dest_di       | Destinataire (+ Recherche) |
-| dest_sc       | Destinataire    |
-| archiviste    | Archiviste      |
-| admin_sys     | Administrateur  |
-
-## Sécurité
-
-- Double authentification 2FA par email (paramétrable)
-- Verrouillage après N tentatives (paramétrable)
-- Déconnexion automatique après inactivité (paramétrable)
-- Expiration mot de passe avec changement obligatoire
-- Journal d'audit immutable sur toutes les actions
-- Cloisonnement strict des données par profil
-
-## Module Admin — Paramètres
-
-- Nom, slogan, pied de page
-- Logo et image de fond floutée (page connexion)
-- Couleurs (appliquées immédiatement)
-- Suppression des images
-- Timeout, durée MDP, tentatives max
-- 2FA globale et par utilisateur
-- Directions et départements
-- Modules supplémentaires par utilisateur
-
-## Corrections v.finale
-
-1. Journal d'audit — toutes les actions de tous les profils
-2. Couleurs dynamiques — injection CSS immédiate
-3. Suppression logo et image de fond
-4. Pas de pied de page sur la page de connexion
-5. Modules supplémentaires affichés dans le menu utilisateur
-6. Direction remplace entite partout
+Après création, ouvrez la page Admin → Utilisateurs → Modifier, et cochez
+les modules à accorder à chaque compte pour qu'il puisse travailler.
