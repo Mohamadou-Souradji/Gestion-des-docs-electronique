@@ -1,19 +1,16 @@
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
-
 from apps.users.models import Utilisateur
 
 if not Utilisateur.objects.filter(identifiant='superadmin').exists():
-    Utilisateur.objects.create_superuser(
+    u = Utilisateur(
         identifiant='superadmin',
-        password='admin1234',
         nom='Admin',
         prenom='Super',
         profil='ADMIN',
+        is_staff=True,
+        is_superuser=True,
     )
+    u.set_password('Admin1234!')
+    u.save()
     print('Superadmin créé.')
 else:
     print('Superadmin existe déjà.')
