@@ -6,14 +6,13 @@
 
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8000/api'
-
+const BASE_URL = 'https://gestion-des-docs-electronique.onrender.com/api'
 function getToken() {
   return localStorage.getItem('access') || ''
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api',
 })
 // Injecter le token JWT à chaque requête
 api.interceptors.request.use(config => {
