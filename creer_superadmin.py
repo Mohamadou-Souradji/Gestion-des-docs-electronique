@@ -9,7 +9,7 @@ from apps.users.models import Utilisateur
 if not Utilisateur.objects.filter(identifiant='superadmin').exists():
     Utilisateur.objects.create_superuser(
         identifiant='superadmin',
-        password='Admin1234!',
+        password='admin1234',
         nom='Admin',
         prenom='Super',
         profil='ADMIN',
