@@ -1,3 +1,9 @@
+import os
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+
 from apps.users.models import Utilisateur
 
 if not Utilisateur.objects.filter(identifiant='superadmin').exists():
