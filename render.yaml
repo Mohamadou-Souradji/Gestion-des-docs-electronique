@@ -23,6 +23,20 @@ services:
       - key: FRONTEND_URL
         sync: false
 
+  - type: web
+    name: ged-escep-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://gestion-des-docs-electronique.onrender.com/api
+
 databases:
   - name: ged-escep-db
     plan: free
