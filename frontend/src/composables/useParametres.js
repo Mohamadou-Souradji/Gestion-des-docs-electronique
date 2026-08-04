@@ -1,8 +1,6 @@
-/**
- * useParametres.js — Paramètres visuels + typographie par organisation.
- * Utilise le tenant_code sauvegardé en localStorage.
- */
 import axios from 'axios'
+
+const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
 
 let cache = null
 
@@ -23,10 +21,9 @@ export async function useParametres(force = false) {
   const code = getTenantCode()
 
   try {
-    const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
-      const url = code
+    const url = code
       ? `${BASE}/parametres/publics/?tenant=${code}`
-      : `${BASE}/parametres/publics/`t:8000/api/parametres/publics/'
+      : `${BASE}/parametres/publics/`
 
     const rep = await axios.get(url)
 
@@ -68,7 +65,6 @@ export async function useParametres(force = false) {
 }
 
 export function appliquerFavicon(p) {
-  // Favicon dynamique selon l'organisation
   const iconUrl = p.favicon_url || p.logo_url
   if (iconUrl) {
     let link = document.querySelector("link[rel~='icon']")
@@ -79,8 +75,6 @@ export function appliquerFavicon(p) {
     }
     link.href = iconUrl
   }
-
-  // Titre de l'onglet
   if (p.nom_application) document.title = p.nom_application
 }
 
@@ -187,14 +181,6 @@ export function appliquerTypographie(p) {
     }
     .modal { border-radius: calc(var(--rayon-bord) * 1.5) !important; }
     input, select, textarea { border-radius: var(--rayon-bord) !important; }
-    .app-layout .sidebar .nav-item,
-    .app-layout .sidebar .nav-sous-item,
-    .app-layout .sidebar . {
-      color: var(--couleur-texte, #fff) !important;
-    }
-    .app-layout  {
-      color: var(--couleur-texte, #fff) !important;
-    } 
   `
 }
 
