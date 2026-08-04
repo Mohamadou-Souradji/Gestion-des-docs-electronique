@@ -23,9 +23,10 @@ export async function useParametres(force = false) {
   const code = getTenantCode()
 
   try {
-    const url = code
-      ? `http://localhost:8000/api/parametres/publics/?tenant=${code}`
-      : 'http://localhost:8000/api/parametres/publics/'
+    const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
+      const url = code
+      ? `${BASE}/parametres/publics/?tenant=${code}`
+      : `${BASE}/parametres/publics/`t:8000/api/parametres/publics/'
 
     const rep = await axios.get(url)
 
