@@ -45,8 +45,8 @@ async function seConnecter() {
   erreur.value = ''
   enChargement.value = true
   try {
-    const rep = await axios.post('http://localhost:8000/api/connexion/', {
-      identifiant: form.value.identifiant,
+const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
+await axios.post(`${BASE}/connexion/`, {      identifiant: form.value.identifiant,
       password:    form.value.password,
     })
 
