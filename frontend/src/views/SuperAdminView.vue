@@ -686,8 +686,7 @@ const totalUtilisateurs = computed(() =>
 )
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
-  get headers() {
+baseURL: import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api',  get headers() {
     return { Authorization: `Bearer ${localStorage.getItem('access')}` }
   }
 })
