@@ -45,22 +45,19 @@ async function seConnecter() {
   erreur.value = ''
   enChargement.value = true
   try {
-const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
-await axios.post(`${BASE}/connexion/`, {      identifiant: form.value.identifiant,
+    const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
+    const rep = await axios.post(`${BASE}/connexion/`, {
+      identifiant: form.value.identifiant,
       password:    form.value.password,
     })
-
     const payload = JSON.parse(atob(rep.data.access.split('.')[1]))
-
     if (!payload.is_superuser) {
       erreur.value = 'Accès refusé. Cette page est réservée au Super-Admin.'
       return
     }
-
     localStorage.setItem('access',  rep.data.access)
     localStorage.setItem('refresh', rep.data.refresh)
     router.push('/super-admin')
-
   } catch(e) {
     erreur.value = e.response?.data?.detail || 'Identifiant ou mot de passe incorrect.'
   } finally {
