@@ -162,7 +162,7 @@ import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useParametres, clearParametresCache } from '../composables/useParametres'
 import { clearModulesCache } from '../composables/useModules'
-
+const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
 const router = useRouter()
 const route  = useRoute()
 
@@ -195,8 +195,7 @@ const tenantValide = computed(() => !!localStorage.getItem('tenant_code'))
 
 async function chargerParametresTenant(code) {
   try {
-    const rep = await axios.get(`http://localhost:8000/api/parametres/publics/?tenant=${code}`)
-    if (rep.data?.couleur_principale) {
+const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)    if (rep.data?.couleur_principale) {
       parametres.value = rep.data
       // Mettre à jour le titre de l'onglet
       if (rep.data.nom_application) {
@@ -213,8 +212,7 @@ async function validerTenant() {
 
   rechercheEnCours.value = true
   try {
-    const rep = await axios.get(`http://localhost:8000/api/parametres/publics/?tenant=${code}`)
-    if (rep.data?.code_tenant) {
+const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)    if (rep.data?.code_tenant) {
       // Sauvegarder DÉFINITIVEMENT — reste même après déconnexion / redémarrage
       localStorage.setItem('tenant_code', rep.data.code_tenant)
       parametres.value = rep.data
@@ -250,8 +248,7 @@ async function confirmerChangementOrg() {
   // Vérifier que cet identifiant existe réellement dans cette organisation
   try {
     const tenant = localStorage.getItem('tenant_code')
-    const rep = await axios.post('http://localhost:8000/api/verifier-identifiant/', {
-      identifiant: id,
+const rep = await axios.post(`${BASE}/verifier-identifiant/`, {      identifiant: id,
       tenant_code: tenant,
     })
     if (rep.data?.existe) {
@@ -280,8 +277,7 @@ async function seConnecter() {
   enChargement.value = true
   const tenant = localStorage.getItem('tenant_code')
   try {
-    const rep = await axios.post('http://localhost:8000/api/connexion/', {
-      identifiant: form.value.identifiant,
+const rep = await axios.post(`${BASE}/connexion/`, {      identifiant: form.value.identifiant,
       password:    form.value.password,
       tenant_code: tenant,
     })
@@ -301,8 +297,7 @@ async function verifier2fa() {
   erreur.value = ''
   enChargement.value = true
   try {
-    const rep = await axios.post('http://localhost:8000/api/2fa/verifier/', {
-      identifiant: form.value.identifiant, code: code2fa.value,
+const rep = await axios.post(`${BASE}/2fa/verifier/`, {      identifiant: form.value.identifiant, code: code2fa.value,
     })
     traiterConnexion(rep.data)
   } catch(e) {
@@ -312,8 +307,7 @@ async function verifier2fa() {
 
 async function renvoyer2fa() {
   try {
-    await axios.post('http://localhost:8000/api/2fa/renvoyer/', { identifiant: form.value.identifiant })
-    message2fa.value = 'Nouveau code envoyé.'
+await axios.post(`${BASE}/2fa/renvoyer/`, { identifiant: form.value.identifiant })    message2fa.value = 'Nouveau code envoyé.'
   } catch { erreur.value = 'Erreur lors du renvoi.' }
 }
 
