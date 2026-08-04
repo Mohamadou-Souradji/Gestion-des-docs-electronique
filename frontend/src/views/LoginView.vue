@@ -162,6 +162,7 @@ import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useParametres, clearParametresCache } from '../composables/useParametres'
 import { clearModulesCache } from '../composables/useModules'
+
 const BASE = import.meta.env.VITE_API_URL || 'https://gestion-des-docs-electronique.onrender.com/api'
 const router = useRouter()
 const route  = useRoute()
@@ -172,35 +173,29 @@ const parametres = ref({
   logo_url: null, image_fond_url: null, flou_image_fond: 5,
 })
 
-const form            = ref({ identifiant: '', password: '' })
-const erreur          = ref('')
-const enChargement    = ref(false)
-const afficherMdp     = ref(false)
-const etape2fa        = ref(false)
-const code2fa         = ref('')
-const message2fa      = ref('')
-const timeoutAlert    = ref(false)
-const tenantSaisi     = ref('')
-const erreurTenant    = ref('')
+const form             = ref({ identifiant: '', password: '' })
+const erreur           = ref('')
+const enChargement     = ref(false)
+const afficherMdp      = ref(false)
+const etape2fa         = ref(false)
+const code2fa          = ref('')
+const message2fa       = ref('')
+const timeoutAlert     = ref(false)
+const tenantSaisi      = ref('')
+const erreurTenant     = ref('')
 const rechercheEnCours = ref(false)
-
-// Modal confirmation changement
 const modalChangement   = ref(false)
 const confirmIdentifiant = ref('')
 const erreurConfirm     = ref('')
 
-// tenantValide = true si tenant_code dans localStorage
-// PERSISTE après déconnexion et redémarrage PC
 const tenantValide = computed(() => !!localStorage.getItem('tenant_code'))
 
 async function chargerParametresTenant(code) {
   try {
-const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)    if (rep.data?.couleur_principale) {
+    const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)
+    if (rep.data?.couleur_principale) {
       parametres.value = rep.data
-      // Mettre à jour le titre de l'onglet
-      if (rep.data.nom_application) {
-        document.title = rep.data.nom_application
-      }
+      if (rep.data.nom_application) document.title = rep.data.nom_application
     }
   } catch {}
 }
@@ -209,11 +204,10 @@ async function validerTenant() {
   erreurTenant.value = ''
   const code = tenantSaisi.value.trim().toLowerCase()
   if (!code) return
-
   rechercheEnCours.value = true
   try {
-const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)    if (rep.data?.code_tenant) {
-      // Sauvegarder DÉFINITIVEMENT — reste même après déconnexion / redémarrage
+    const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)
+    if (rep.data?.code_tenant) {
       localStorage.setItem('tenant_code', rep.data.code_tenant)
       parametres.value = rep.data
       if (rep.data.nom_application) document.title = rep.data.nom_application
@@ -227,32 +221,26 @@ const rep = await axios.get(`${BASE}/parametres/publics/?tenant=${code}`)    if 
   }
 }
 
-// Demander le changement — ouvre modal de confirmation
 function demanderChangementOrg() {
   confirmIdentifiant.value = ''
   erreurConfirm.value = ''
   modalChangement.value = true
 }
 
-// Confirmer le changement — vérifie que l'identifiant saisi correspond
-// à un utilisateur existant (pour éviter qu'un inconnu change l'org)
 async function confirmerChangementOrg() {
   erreurConfirm.value = ''
   const id = confirmIdentifiant.value.trim()
-
   if (!id) {
     erreurConfirm.value = "Saisissez votre identifiant pour confirmer."
     return
   }
-
-  // Vérifier que cet identifiant existe réellement dans cette organisation
   try {
     const tenant = localStorage.getItem('tenant_code')
-const rep = await axios.post(`${BASE}/verifier-identifiant/`, {      identifiant: id,
+    const rep = await axios.post(`${BASE}/verifier-identifiant/`, {
+      identifiant: id,
       tenant_code: tenant,
     })
     if (rep.data?.existe) {
-      // L'identifiant est reconnu — autoriser le changement
       localStorage.removeItem('tenant_code')
       clearParametresCache()
       modalChangement.value = false
@@ -277,7 +265,8 @@ async function seConnecter() {
   enChargement.value = true
   const tenant = localStorage.getItem('tenant_code')
   try {
-const rep = await axios.post(`${BASE}/connexion/`, {      identifiant: form.value.identifiant,
+    const rep = await axios.post(`${BASE}/connexion/`, {
+      identifiant: form.value.identifiant,
       password:    form.value.password,
       tenant_code: tenant,
     })
@@ -297,7 +286,9 @@ async function verifier2fa() {
   erreur.value = ''
   enChargement.value = true
   try {
-const rep = await axios.post(`${BASE}/2fa/verifier/`, {      identifiant: form.value.identifiant, code: code2fa.value,
+    const rep = await axios.post(`${BASE}/2fa/verifier/`, {
+      identifiant: form.value.identifiant,
+      code: code2fa.value,
     })
     traiterConnexion(rep.data)
   } catch(e) {
@@ -307,24 +298,20 @@ const rep = await axios.post(`${BASE}/2fa/verifier/`, {      identifiant: form.v
 
 async function renvoyer2fa() {
   try {
-await axios.post(`${BASE}/2fa/renvoyer/`, { identifiant: form.value.identifiant })    message2fa.value = 'Nouveau code envoyé.'
-  } catch { erreur.value = 'Erreur lors du renvoi.' }
+    await axios.post(`${BASE}/2fa/renvoyer/`, { identifiant: form.value.identifiant })
+    message2fa.value = 'Nouveau code envoyé.'
+  } catch {
+    erreur.value = 'Erreur lors du renvoi.'
+  }
 }
 
 function traiterConnexion(data) {
   localStorage.setItem('access',  data.access)
   localStorage.setItem('refresh', data.refresh)
   clearModulesCache()
-
   if (data.mdp_expire) localStorage.setItem('mdp_expire', '1')
-
   const payload = JSON.parse(atob(data.access.split('.')[1]))
-
-  if (payload.tenant_code) {
-    localStorage.setItem('tenant_code', payload.tenant_code)
-  }
-
-  // Redirection selon profil
+  if (payload.tenant_code) localStorage.setItem('tenant_code', payload.tenant_code)
   if (payload.is_superuser) {
     router.push('/super-admin')
   } else if (payload.profil === 'ADMIN') {
@@ -337,9 +324,7 @@ function traiterConnexion(data) {
 onMounted(async () => {
   timeoutAlert.value = route.query.timeout === '1'
   const savedTenant = localStorage.getItem('tenant_code')
-  if (savedTenant) {
-    await chargerParametresTenant(savedTenant)
-  }
+  if (savedTenant) await chargerParametresTenant(savedTenant)
 })
 </script>
 
